@@ -3,7 +3,7 @@
 ## Done
 - Live app: https://bookleaf-royalties-22258.bubbleapps.io/version-test
 - 10 Authors + 18 Books; users + Author links
-- Tunnel: `https://soft-vans-feel.loca.lt/webhook/royalty-summary` (`data/current-tunnel-host.txt`)
+- Tunnel: `https://bd7876ce1547cc.lhr.life/webhook/royalty-summary` (`data/current-tunnel-host.txt`)
 - API Connector **INITIALIZED** on that host
 - E2E Success log for Priya; automation 60s `request_id` idempotency
 

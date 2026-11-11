@@ -15,7 +15,7 @@ Thank you for the opportunity to complete Assignment 2. Please find my submissio
 - Privacy check author: ananya.reddy@email.com / Author@123
 
 2) Automation / n8n
-- Live webhook (current): POST https://soft-vans-feel.loca.lt/webhook/royalty-summary
+- Live webhook (current): POST https://bd7876ce1547cc.lhr.life/webhook/royalty-summary
   (host may rotate — see data/current-tunnel-host.txt)
 - Header: X-API-Key: bookleaf-dev-secret
 - Local Express automation: automation/ (AI local-fallback when OPENAI_API_KEY unset; 60s request_id idempotency)
