@@ -18,12 +18,15 @@ Thank you for the opportunity to complete Assignment 2. Please find my submissio
 - Webhook: POST https://1532af595ffa81.lhr.life/webhook/royalty-summary
   (tunnel host can rotate — I can refresh it for review if needed)
 - Header: X-API-Key: bookleaf-dev-secret
-- n8n workflow export + README + automation source (Anyone with the link):
+- GitHub (public): https://github.com/Mdsarfraz667/bookleaf-assignment-2
+  - n8n export: https://github.com/Mdsarfraz667/bookleaf-assignment-2/blob/main/n8n/bookleaf-royalty-summary.json
+  - README: https://github.com/Mdsarfraz667/bookleaf-assignment-2/blob/main/README.md
+- Drive zip (Anyone with the link):
   https://drive.google.com/file/d/1MxonJkwWtoTKIZCMfg1lH7fvp9GDn__b/view?usp=sharing
 - Local Express automation mirrors the same webhook contract (API key + 60s request_id idempotency + AI with local fallback if no OpenAI key)
 
 3) Documentation
-- Included in the share link above (README + docs/)
+- Included in the GitHub repo / Drive zip (README + docs/)
 
 4) Screen recording
 - Loom: <PASTE_LOOM_URL>
