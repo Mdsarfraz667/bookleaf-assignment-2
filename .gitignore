@@ -8,3 +8,8 @@ automation/.env
 .vscode/
 n8n-data/
 .n8n/
+
+data/current-tunnel-host.txt
+data/tunnel.log
+data/automation.log
+data/inject_batch1.js
