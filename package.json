@@ -7,9 +7,14 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "n8n": "N8N_USER_FOLDER=./n8n-data N8N_PORT=5679 N8N_PROTOCOL=http WEBHOOK_URL=http://127.0.0.1:5679/ N8N_DIAGNOSTICS_ENABLED=false N8N_PERSONALIZATION_ENABLED=false n8n start",
+    "automation": "npm --prefix automation start",
+    "automation:demo": "npm --prefix automation run demo"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "n8n": "^1.82.4"
+  }
 }

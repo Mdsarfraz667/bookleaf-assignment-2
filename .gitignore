@@ -6,3 +6,5 @@ automation/.env
 *.log
 .idea/
 .vscode/
+n8n-data/
+.n8n/
