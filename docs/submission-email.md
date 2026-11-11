@@ -28,10 +28,9 @@ Thank you for the opportunity to complete Assignment 2. Please find my submissio
 3) Documentation
 - Included in the GitHub repo / Drive zip (README + docs/)
 
-4) Screen recording (silent captioned walkthrough)
-- https://github.com/Mdsarfraz667/bookleaf-assignment-2/blob/main/docs/demo/bookleaf-assignment2-demo.mp4
-- Raw download: https://github.com/Mdsarfraz667/bookleaf-assignment-2/raw/main/docs/demo/bookleaf-assignment2-demo.mp4
-- (Optional Loom if you record a live click-through later): <PASTE_LOOM_URL>
+4) Screen recording (~3 min live Bubble walkthrough, silent)
+- https://github.com/Mdsarfraz667/bookleaf-assignment-2/blob/main/docs/demo/bookleaf-live-demo-3min.mp4
+- Raw download: https://github.com/Mdsarfraz667/bookleaf-assignment-2/raw/main/docs/demo/bookleaf-live-demo-3min.mp4
 
 Happy to walk through Bubble workflows / automation in the founder interview.
 
