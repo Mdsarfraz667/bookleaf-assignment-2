@@ -1,0 +1,293 @@
+{
+  "name": "BookLeaf Royalty Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "royalty-summary",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "wh-001",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [0, 300],
+      "webhookId": "bookleaf-royalty-summary"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.headers['x-api-key'] || $json.headers['X-API-Key']}}",
+              "operation": "equal",
+              "value2": "={{$env.BOOKLEAF_WEBHOOK_API_KEY}}"
+            }
+          ]
+        }
+      },
+      "id": "if-auth-001",
+      "name": "API Key Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, status: 'Failed', error: 'Unauthorized: missing or invalid X-API-Key' } }}",
+        "options": {
+          "responseCode": 401
+        }
+      },
+      "id": "resp-401",
+      "name": "Respond 401",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [480, 480]
+    },
+    {
+      "parameters": {
+        "jsCode": "const body = $json.body || $json;\nconst headers = $json.headers || {};\nconst request_id = body.request_id || `req_${Date.now()}`;\nconst author_id = body.author_id;\nconst email = body.email;\n\nif (!author_id && !email && !(body.author && body.books)) {\n  return [{\n    json: {\n      ok: false,\n      status: 'Failed',\n      request_id,\n      error: 'author_id or email or author+books payload required',\n      skip_ai: true\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ok: true,\n    request_id,\n    author_id,\n    email,\n    author: body.author || null,\n    books: body.books || null,\n    bubble_author_unique_id: body.bubble_author_unique_id || null,\n    notification_log_id: body.notification_log_id || null,\n    received_at: new Date().toISOString(),\n    raw_headers: headers\n  }\n}];"
+      },
+      "id": "code-normalize",
+      "name": "Normalize Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [480, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{!!$json.author && !!$json.books}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-payload",
+      "name": "Payload Has Author?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [720, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "const author = $json.author;\nconst books = $json.books || [];\nconst totals = books.reduce((acc, b) => {\n  acc.earned += Number(b.total_royalty_earned || 0);\n  acc.paid += Number(b.royalty_paid || 0);\n  acc.pending += Number(b.royalty_pending || 0);\n  return acc;\n}, { earned: 0, paid: 0, pending: 0 });\n\nreturn [{\n  json: {\n    ...($json),\n    author,\n    books,\n    totals,\n    books_json: JSON.stringify(books, null, 2)\n  }\n}];"
+      },
+      "id": "code-use-payload",
+      "name": "Use Webhook Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 80]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Justification (README): preferred path is webhook with author_id only,\n// then fetch from Bubble Data API. For offline/demo imports we also accept\n// a full author+books payload. If Bubble creds are not configured, fail clearly.\nconst staticData = $getWorkflowStaticData('global');\nif (!staticData.sampleAuthors) {\n  staticData.sampleAuthors = {};\n}\n\nconst author_id = $json.author_id;\nconst email = ($json.email || '').toLowerCase();\n\n// Placeholder: when connected to Bubble, replace this Code node with\n// HTTP Request → Bubble Data API:\n// GET https://<app>.bubbleapps.io/api/1.1/obj/author?constraints=[{\"key\":\"author_id\",\"constraint_type\":\"equals\",\"value\":\"AUTH001\"}]\n// then GET books constrained by author unique id.\n\nreturn [{\n  json: {\n    ...$json,\n    ok: false,\n    status: 'Failed',\n    skip_ai: true,\n    error: 'No author+books in webhook body. Either send full payload from Bubble OR replace this node with Bubble Data API fetch. See n8n/README.md.'\n  }\n}];"
+      },
+      "id": "code-fetch-hint",
+      "name": "Fetch From Bubble (configure)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [960, 320]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.skip_ai === true || $json.ok === false}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "if-ready",
+      "name": "Ready for AI?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1200, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4o-mini\",\n  \"temperature\": 0.4,\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"You are writing royalty summary emails for BookLeaf Publishing authors.\\n\\nWrite as BookLeaf — warm, specific, and accountable.\\n\\nROYALTY POLICY:\\n- Authors receive 80% of NET PROFIT per book; BookLeaf keeps 20%.\\n- Royalties are calculated QUARTERLY and paid within 45 days of quarter end.\\n- Minimum payout threshold: ₹1,000 (below rolls over).\\n- Payouts via bank transfer to the linked dashboard account.\\n\\nEMAIL MUST INCLUDE:\\n1. Personalized greeting\\n2. Per published book: sales + royalty figures\\n3. Totals earned/paid/pending\\n4. If pending: quarterly + 45-day expectation (mention ₹1000 min if relevant)\\n5. If fully paid: positive acknowledgement\\n6. If books in production: brief status\\n7. Warm closing + clear next step + sign off as — The BookLeaf Team\\n\\nOUTPUT: email body only. No subject. No markdown fences. Use ₹ formatting.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Write a royalty summary email for this author.\\n\\nAUTHOR\\n- Name: {{$json.author.name}}\\n- Author ID: {{$json.author.author_id}}\\n- Email: {{$json.author.email}}\\n- City: {{$json.author.city}}\\n\\nBOOKS\\n{{$json.books_json}}\\n\\nTOTALS\\n- Earned: ₹{{$json.totals.earned}}\\n- Paid: ₹{{$json.totals.paid}}\\n- Pending: ₹{{$json.totals.pending}}\"\n    }\n  ]\n}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "id": "http-openai",
+      "name": "OpenAI Royalty Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 80],
+      "continueOnFail": true,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "OPENAI_HEADER_AUTH",
+          "name": "OpenAI Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const prev = $('Use Webhook Payload').item.json;\nconst ai = $json;\nconst content = ai.choices?.[0]?.message?.content?.trim();\nconst failed = !content || ai.error || (ai.statusCode && ai.statusCode >= 400);\n\nif (failed) {\n  return [{\n    json: {\n      ...prev,\n      ok: false,\n      status: 'Failed',\n      email_body: null,\n      error_message: ai.error?.message || ai.message || 'AI API call failed',\n      completed_at: new Date().toISOString()\n    }\n  }];\n}\n\nreturn [{\n  json: {\n    ...prev,\n    ok: true,\n    status: 'Success',\n    email_body: content,\n    error_message: null,\n    completed_at: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "code-parse-ai",
+      "name": "Parse AI Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1680, 80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.BUBBLE_CALLBACK_URL}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.BUBBLE_API_TOKEN}}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"request_id\": \"{{$json.request_id}}\",\n  \"author_id\": \"{{$json.author.author_id}}\",\n  \"notification_log_id\": {{$json.notification_log_id ? '\"' + $json.notification_log_id + '\"' : 'null'}},\n  \"status\": \"{{$json.status}}\",\n  \"email_body\": {{JSON.stringify($json.email_body)}},\n  \"error_message\": {{JSON.stringify($json.error_message)}},\n  \"completed_at\": \"{{$json.completed_at}}\"\n}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "http-bubble-callback",
+      "name": "Callback Bubble NotificationLog",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1920, 80],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: $json.ok !== false && ($('Parse AI Result').item.json.status === 'Success'), status: $('Parse AI Result').item.json.status, request_id: $('Parse AI Result').item.json.request_id, author_id: $('Parse AI Result').item.json.author.author_id, email_body: $('Parse AI Result').item.json.email_body, error_message: $('Parse AI Result').item.json.error_message } }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "resp-ok",
+      "name": "Respond Success/Fail",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [2160, 80]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{$env.BUBBLE_CALLBACK_URL}}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "=Bearer {{$env.BUBBLE_API_TOKEN}}"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"request_id\": \"{{$json.request_id}}\",\n  \"author_id\": \"{{$json.author_id}}\",\n  \"notification_log_id\": {{$json.notification_log_id ? '\"' + $json.notification_log_id + '\"' : 'null'}},\n  \"status\": \"Failed\",\n  \"error_message\": {{JSON.stringify($json.error || 'Workflow failed before AI')}},\n  \"completed_at\": \"{{$now.toISO()}}\"\n}",
+        "options": {}
+      },
+      "id": "http-fail-callback",
+      "name": "Callback Failed Status",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1440, 320],
+      "continueOnFail": true
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { ok: false, status: 'Failed', request_id: $json.request_id, error: $json.error } }}",
+        "options": {
+          "responseCode": 500
+        }
+      },
+      "id": "resp-fail",
+      "name": "Respond Failed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1680, 320]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [[{ "node": "API Key Valid?", "type": "main", "index": 0 }]]
+    },
+    "API Key Valid?": {
+      "main": [
+        [{ "node": "Normalize Payload", "type": "main", "index": 0 }],
+        [{ "node": "Respond 401", "type": "main", "index": 0 }]
+      ]
+    },
+    "Normalize Payload": {
+      "main": [[{ "node": "Payload Has Author?", "type": "main", "index": 0 }]]
+    },
+    "Payload Has Author?": {
+      "main": [
+        [{ "node": "Use Webhook Payload", "type": "main", "index": 0 }],
+        [{ "node": "Fetch From Bubble (configure)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Use Webhook Payload": {
+      "main": [[{ "node": "Ready for AI?", "type": "main", "index": 0 }]]
+    },
+    "Fetch From Bubble (configure)": {
+      "main": [[{ "node": "Ready for AI?", "type": "main", "index": 0 }]]
+    },
+    "Ready for AI?": {
+      "main": [
+        [{ "node": "Callback Failed Status", "type": "main", "index": 0 }],
+        [{ "node": "OpenAI Royalty Email", "type": "main", "index": 0 }]
+      ]
+    },
+    "OpenAI Royalty Email": {
+      "main": [[{ "node": "Parse AI Result", "type": "main", "index": 0 }]]
+    },
+    "Parse AI Result": {
+      "main": [[{ "node": "Callback Bubble NotificationLog", "type": "main", "index": 0 }]]
+    },
+    "Callback Bubble NotificationLog": {
+      "main": [[{ "node": "Respond Success/Fail", "type": "main", "index": 0 }]]
+    },
+    "Callback Failed Status": {
+      "main": [[{ "node": "Respond Failed", "type": "main", "index": 0 }]]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "templateCredsSetupCompleted": false,
+    "instanceId": "bookleaf-assignment-2"
+  },
+  "tags": [
+    {
+      "name": "bookleaf"
+    }
+  ]
+}
