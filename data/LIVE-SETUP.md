@@ -8,8 +8,8 @@ Preview: https://bookleaf-royalties-22258.bubbleapps.io/version-test
 - Sample data: **10 Authors** (`AUTH001`–`AUTH010`), **18 Books** (`BK001`–`BK018`)
 - Privacy rules reviewed (author isolation via Author user field)
 - Automation webhook on `:5678` + public tunnel via **localtunnel**
-  - Current host: `bd7876ce1547cc.lhr.life` (also in `data/current-tunnel-host.txt`)
-  - `POST https://bd7876ce1547cc.lhr.life/webhook/royalty-summary`
+  - Current host: `c69f7d793e4423.lhr.life` (also in `data/current-tunnel-host.txt`)
+  - `POST https://c69f7d793e4423.lhr.life/webhook/royalty-summary`
   - Header: `X-API-Key: bookleaf-dev-secret` (+ `Bypass-Tunnel-Reminder: true`)
 - Bubble API Connector **Send royalty summary** **INITIALIZED** (~1.6s, `ok: true`) on current host
 - Temporary **Sign up** + **Log out** on the live app

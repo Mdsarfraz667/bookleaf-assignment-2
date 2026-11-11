@@ -9,27 +9,26 @@ Thank you for the opportunity to complete Assignment 2. Please find my submissio
 
 1) Bubble app
 - Live URL: https://bookleaf-royalties-22258.bubbleapps.io/version-test
-- Collaborator: invite for musavir@bookleafpub.in is blocked on Bubble Free (needs Growth). Please use the Preview URL + logins below, or I can re-invite after a Growth upgrade.
+- Collaborator: Bubble Free does not allow adding musavir@bookleafpub.in (as noted in your email). Sharing live URL + test logins + screen recording instead.
 - Admin login: admin@bookleafpub.in / Admin@123
 - Author login: priya.sharma@email.com / Author@123
 - Privacy check author: ananya.reddy@email.com / Author@123
 
 2) Automation / n8n
-- Live webhook (current): POST https://bd7876ce1547cc.lhr.life/webhook/royalty-summary
-  (host may rotate — see data/current-tunnel-host.txt)
+- Webhook: POST https://1532af595ffa81.lhr.life/webhook/royalty-summary
+  (tunnel host can rotate — I can refresh it for review if needed)
 - Header: X-API-Key: bookleaf-dev-secret
-- Local Express automation: automation/ (AI local-fallback when OPENAI_API_KEY unset; 60s request_id idempotency)
-- n8n export JSON: n8n/bookleaf-royalty-summary.json
-- Local n8n (optional): http://127.0.0.1:5679 — admin@bookleafpub.in / BookLeaf@n8n123
+- n8n workflow export + README + automation source (Anyone with the link):
+  https://drive.google.com/file/d/1MxonJkwWtoTKIZCMfg1lH7fvp9GDn__b/view?usp=sharing
+- Local Express automation mirrors the same webhook contract (API key + 60s request_id idempotency + AI with local fallback if no OpenAI key)
 
 3) Documentation
-- Repo README + docs/ (schema, Bubble ↔ webhook, prompt strategy, error handling)
-- Live status: data/LIVE-SETUP.md
+- Included in the share link above (README + docs/)
 
 4) Screen recording
-- Loom: <LOOM_URL>  (script: docs/loom-script.md)
+- Loom: <PASTE_LOOM_URL>
 
-Happy to walk through any part of the Bubble workflows or automation graph in the founder interview.
+Happy to walk through Bubble workflows / automation in the founder interview.
 
 Best regards,
 Md Sarfraz
